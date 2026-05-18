@@ -1,0 +1,29 @@
+# 深度学习核心
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio
+
+# 数值计算
+numpy>=1.24.0
+scipy
+
+# 可视化绘图
+matplotlib
+seaborn
+tqdm
+
+# 数据处理
+pandas
+scikit-learn
+
+# 图像处理
+opencv-python
+pillow
+
+# 训练日志/可视化
+tensorboard
+wandb
+
+# 工具
+pyyaml
+json5
