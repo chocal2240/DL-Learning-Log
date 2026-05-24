@@ -1,5 +1,7 @@
 # Transformer Practice
 
+*项目借鉴B站UP主“炮哥带你学”的课程分享源码*
+
 这是一个用于学习 Transformer 机器翻译模型实现的 PyTorch 练习项目。项目从零实现了经典 Encoder-Decoder Transformer 的核心模块，包括词向量、位置编码、多头注意力、前馈网络、残差连接、LayerNorm、Beam Search 解码、训练循环和 BLEU 评估。
 
 当前版本在保留原有项目结构和学习价值的基础上，对源码做了现代化整理，使代码更易读、更容易调试，也更适合较新的 PyTorch 环境。
