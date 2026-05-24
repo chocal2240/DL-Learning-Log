@@ -39,3 +39,12 @@ env/
 .DS_Store
 *.tmp
 *.swp
+
+# 笔记图片
+*.png
+
+# Transformer Practice 源码中的数据处理脚本需要纳入仓库，
+# 但数据本体仍由项目内 .gitignore 忽略。
+!Code/transformer_practice/data/
+!Code/transformer_practice/data/*.py
+!Code/transformer_practice/data/README.md

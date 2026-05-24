@@ -1,0 +1,9 @@
+data/json/
+data/corpus.*
+tokenizer/*.model
+tokenizer/*.vocab
+run/
+weights/
+wandb/
+__pycache__/
+*.pyc
