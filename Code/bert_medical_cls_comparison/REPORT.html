@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>BERT 医疗文本分类策略对比报告</title>
+  <style>
+    @page { size: A4; margin: 9mm 10mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #172033;
+      font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      font-size: 9.2pt;
+      line-height: 1.35;
+    }
+    h1 {
+      margin: 0 0 3px;
+      color: #163b78;
+      font-size: 19pt;
+      line-height: 1.15;
+    }
+    h2 {
+      margin: 8px 0 4px;
+      padding-left: 6px;
+      border-left: 3px solid #3b82f6;
+      color: #163b78;
+      font-size: 11.5pt;
+    }
+    p { margin: 3px 0; }
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 14px;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    th, td {
+      padding: 4px 5px;
+      border: 1px solid #bcc7d8;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      color: #fff;
+      background: #315d9b;
+      font-weight: 600;
+    }
+    tr:nth-child(even) td { background: #f6f8fb; }
+    .best { color: #0d7a45; font-weight: 700; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .card {
+      min-height: 88px;
+      padding: 6px 7px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #fff;
+    }
+    .card strong { color: #174b88; }
+    .conclusion {
+      margin-top: 6px;
+      padding: 6px 8px;
+      border: 1px solid #86b7fe;
+      background: #eef6ff;
+      font-weight: 600;
+    }
+    .note { color: #526078; font-size: 8pt; }
+    .footer {
+      margin-top: 5px;
+      padding-top: 4px;
+      border-top: 1px solid #cbd5e1;
+      color: #526078;
+      font-size: 7.8pt;
+    }
+    a { color: #245ea8; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>BERT 医疗文本分类三种训练策略对比</h1>
+  <div class="meta">
+    <div><b>任务：</b>KUAKE-QIC 中文医疗搜索意图 11 分类</div>
+    <div><b>设备：</b>RTX 4060 Laptop GPU（8GB）</div>
+    <div><b>数据：</b>训练 1,368 / 验证 293 / 测试 294</div>
+    <div><b>设置：</b>BERT-base-chinese，FP16，8 epochs，seed 42</div>
+  </div>
+
+  <h2>核心结果</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:23%">策略</th>
+        <th>Accuracy</th>
+        <th>Macro-F1</th>
+        <th>训练时间</th>
+        <th>峰值显存</th>
+        <th style="width:20%">可训练参数</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>随机初始化 BERT</td>
+        <td>68.37%</td>
+        <td>45.49%</td>
+        <td>74.89 秒</td>
+        <td>1,807.7 MB</td>
+        <td>102.28M（100%）</td>
+      </tr>
+      <tr>
+        <td>冻结预训练 BERT</td>
+        <td>59.52%</td>
+        <td>35.32%</td>
+        <td class="best">30.42 秒</td>
+        <td class="best">453.2 MB</td>
+        <td>8,459（0.0083%）</td>
+      </tr>
+      <tr>
+        <td>预训练 BERT + LoRA</td>
+        <td class="best">77.21%</td>
+        <td class="best">56.94%</td>
+        <td>67.55 秒</td>
+        <td>913.0 MB</td>
+        <td>303,371（0.2957%）</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note">训练时间仅含 Trainer.train()；峰值显存为 torch.cuda.max_memory_allocated()。类别不平衡，因此 Macro-F1 比单独 Accuracy 更能反映整体分类能力。</p>
+
+  <h2>差异分析</h2>
+  <div class="cards">
+    <div class="card">
+      <strong>随机初始化</strong>
+      <p>全参数训练可拟合高频类别，但小数据不足以从零学习稳定语言表示。效果高于冻结策略，却需要最多参数、时间与显存。</p>
+    </div>
+    <div class="card">
+      <strong>冻结微调</strong>
+      <p>只训练分类头，速度最快、显存最低。固定通用表示无法充分适应细粒度医疗意图，因此 Accuracy 与 Macro-F1 均最低。</p>
+    </div>
+    <div class="card">
+      <strong>LoRA</strong>
+      <p>仅训练 0.30% 参数并保留预训练知识。相比随机初始化，Accuracy +8.84 个百分点，显存降低约 49.5%，综合表现最佳。</p>
+    </div>
+  </div>
+
+  <h2>适用场景</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:20%">策略</th>
+        <th style="width:43%">适合</th>
+        <th>主要限制</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>随机初始化</td>
+        <td>教学对照、验证预训练价值、拥有海量领域语料</td>
+        <td>小数据下效果与资源效率较差</td>
+      </tr>
+      <tr>
+        <td>冻结微调</td>
+        <td>极低显存、快速原型、最低成本基线</td>
+        <td>领域适应能力有限</td>
+      </tr>
+      <tr>
+        <td>LoRA</td>
+        <td>小中型领域数据、多任务 Adapter、有限 GPU</td>
+        <td>极大规模领域迁移可能仍需全量微调</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="conclusion">
+    结论：当前小规模中文医疗分类任务应优先采用 LoRA；冻结微调适合作为低成本基线，随机初始化主要用于实验对照。
+  </div>
+
+  <div class="footer">
+    W&amp;B：
+    <a href="https://wandb.ai/chocal2240-lanzhou-university/bert-medical-intent-comparison">项目总览</a> |
+    <a href="https://wandb.ai/chocal2240-lanzhou-university/bert-medical-intent-comparison/runs/qm5jcgjr">汇总对比</a> |
+    <a href="https://wandb.ai/chocal2240-lanzhou-university/bert-medical-intent-comparison/runs/r0d5e1rb">随机初始化</a> |
+    <a href="https://wandb.ai/chocal2240-lanzhou-university/bert-medical-intent-comparison/runs/xlgghuup">冻结</a> |
+    <a href="https://wandb.ai/chocal2240-lanzhou-university/bert-medical-intent-comparison/runs/1tibjfwv">LoRA</a>
+  </div>
+</body>
+</html>

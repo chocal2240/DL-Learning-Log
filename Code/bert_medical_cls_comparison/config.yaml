@@ -1,0 +1,52 @@
+experiment:
+  name: bert-medical-intent-comparison
+  seed: 42
+
+storage:
+  root_dir: D:/DL-Learning-Log-Artifacts/bert_medical_cls_comparison
+  cache_dir: D:/DL-Learning-Log-Artifacts/huggingface
+
+model:
+  name: google-bert/bert-base-chinese
+  max_length: 64
+
+data:
+  dataset_name: wyp/CBlue-KUAKE-QIC
+  dataset_split: validation
+  output_dir: data/processed
+  train_ratio: 0.70
+  validation_ratio: 0.15
+  test_ratio: 0.15
+  artifact_name: kuake-qic-small
+
+training:
+  train_batch_size: 16
+  eval_batch_size: 32
+  gradient_accumulation_steps: 1
+  weight_decay: 0.01
+  warmup_ratio: 0.10
+  logging_steps: 10
+  early_stopping_patience: 2
+  fp16: true
+
+strategies:
+  random_init:
+    learning_rate: 0.0001
+    num_train_epochs: 8
+  frozen:
+    learning_rate: 0.001
+    num_train_epochs: 8
+  lora:
+    learning_rate: 0.0002
+    num_train_epochs: 8
+    r: 8
+    alpha: 16
+    dropout: 0.10
+    target_modules:
+      - query
+      - value
+
+wandb:
+  project: bert-medical-intent-comparison
+  entity: null
+  mode: online
